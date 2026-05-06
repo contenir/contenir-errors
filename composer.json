@@ -2,6 +2,7 @@
     "name": "contenir/errors",
     "description": "Framework-agnostic admin-authored error-page content for Contenir CMS — admin writes per-status titles and bodies, Site renders.",
     "type": "library",
+    "version": "0.1.0",
     "license": "MIT",
     "require": {
         "php": "^8.1 || ^8.2 || ^8.3"
