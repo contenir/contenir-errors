@@ -4,12 +4,26 @@
     "type": "library",
     "version": "0.1.0",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../contenir-config",
+            "canonical": false,
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
         "php": "^8.1 || ^8.2 || ^8.3"
     },
     "require-dev": {
+        "contenir/config": "^0.1.0",
         "phpunit/phpunit": "^11.0",
         "squizlabs/php_codesniffer": "^3.10"
+    },
+    "suggest": {
+        "contenir/config": "Required if you intend to use Repository\\FileRepository (admin-side writer). Sites that read state from the merged Laminas/Mezzio config — and use Repository\\InMemoryRepository — don't need it."
     },
     "autoload": {
         "psr-4": { "Contenir\\Errors\\": "src/" }

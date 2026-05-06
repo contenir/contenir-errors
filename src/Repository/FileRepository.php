@@ -4,22 +4,38 @@ declare(strict_types=1);
 
 namespace Contenir\Errors\Repository;
 
+use Contenir\Config\Reader\PhpArray as ConfigReader;
+use Contenir\Config\Writer\PhpArray as ConfigWriter;
 use Contenir\Errors\ErrorPage;
 use Contenir\Errors\ErrorPageRepositoryInterface;
-use RuntimeException;
-use Throwable;
 
 /**
  * PHP-array file backing store.
  *
- * The file returns an associative array keyed by status code — opcache-cacheable,
- * fast to read on every request. A missing or unreadable file resolves to "no
- * configured pages" so first-run consumers don't crash before the admin has ever
- * authored anything. Save errors throw; the caller (admin UI) is expected to
- * surface them.
+ * The file follows the Laminas/Mezzio config-namespacing convention:
+ *
+ *     return [
+ *         'errors' => [
+ *             'pages' => [
+ *                 403 => ['title' => '...', 'body' => '...'],
+ *                 404 => ['title' => '...', 'body' => '...'],
+ *             ],
+ *         ],
+ *     ];
+ *
+ * The repository owns only the `errors.pages` subkey. All other top-level
+ * keys, and any sibling keys under `errors`, are preserved on save —
+ * operators or other tooling can hand-edit the same file safely.
+ *
+ * A missing or unreadable file resolves to "no configured pages" so
+ * first-run consumers don't crash before the admin has authored anything.
  */
 final class FileRepository implements ErrorPageRepositoryInterface
 {
+    private const NAMESPACE_KEY = 'errors';
+    private const PAGES_KEY     = 'pages';
+    private const WRITE_LABEL   = 'error pages';
+
     public function __construct(
         private readonly string $filePath,
     ) {
@@ -32,23 +48,15 @@ final class FileRepository implements ErrorPageRepositoryInterface
 
     public function all(): array
     {
-        if (! is_file($this->filePath) || ! is_readable($this->filePath)) {
-            return [];
-        }
+        $config    = ConfigReader::fromFile($this->filePath);
+        $pagesData = $config[self::NAMESPACE_KEY][self::PAGES_KEY] ?? null;
 
-        try {
-            /** @psalm-suppress UnresolvableInclude */
-            $data = include $this->filePath;
-        } catch (Throwable) {
-            return [];
-        }
-
-        if (! is_array($data)) {
+        if (! is_array($pagesData)) {
             return [];
         }
 
         $pages = [];
-        foreach ($data as $status => $row) {
+        foreach ($pagesData as $status => $row) {
             if (! is_int($status) || ! is_array($row)) {
                 continue;
             }
@@ -64,10 +72,10 @@ final class FileRepository implements ErrorPageRepositoryInterface
 
     public function save(ErrorPage $page): void
     {
-        $pages           = $this->all();
+        $pages                = $this->all();
         $pages[$page->status] = $page;
 
-        $this->writeAll($pages);
+        $this->persistPages($pages);
     }
 
     public function delete(int $status): void
@@ -78,16 +86,17 @@ final class FileRepository implements ErrorPageRepositoryInterface
         }
 
         unset($pages[$status]);
-        $this->writeAll($pages);
+        $this->persistPages($pages);
     }
 
     /**
      * @param array<int, ErrorPage> $pages
      */
-    private function writeAll(array $pages): void
+    private function persistPages(array $pages): void
     {
-        $payload = [];
         ksort($pages);
+
+        $payload = [];
         foreach ($pages as $status => $page) {
             $payload[$status] = [
                 'title' => $page->title,
@@ -95,48 +104,12 @@ final class FileRepository implements ErrorPageRepositoryInterface
             ];
         }
 
-        $contents = "<?php\n\nreturn " . self::exportArray($payload) . ";\n";
-
-        $dir = \dirname($this->filePath);
-        if (! is_dir($dir) && ! @mkdir($dir, 0o755, true) && ! is_dir($dir)) {
-            throw new RuntimeException(sprintf('Cannot create errors directory "%s".', $dir));
+        $config = ConfigReader::fromFile($this->filePath);
+        if (! isset($config[self::NAMESPACE_KEY]) || ! is_array($config[self::NAMESPACE_KEY])) {
+            $config[self::NAMESPACE_KEY] = [];
         }
+        $config[self::NAMESPACE_KEY][self::PAGES_KEY] = $payload;
 
-        $tmp = $this->filePath . '.tmp';
-        if (@file_put_contents($tmp, $contents, LOCK_EX) === false) {
-            throw new RuntimeException(sprintf('Cannot write error pages to "%s".', $tmp));
-        }
-
-        // Atomic swap so a partial write is never visible to readers.
-        if (! @rename($tmp, $this->filePath)) {
-            @unlink($tmp);
-            throw new RuntimeException(sprintf('Cannot install error pages at "%s".', $this->filePath));
-        }
-
-        // Drop any cached opcode for the old contents — otherwise readers in
-        // long-running PHP-FPM workers would see stale state.
-        if (\function_exists('opcache_invalidate')) {
-            @opcache_invalidate($this->filePath, true);
-        }
-    }
-
-    /**
-     * @param array<int, array{title: string, body: string}> $data
-     */
-    private static function exportArray(array $data): string
-    {
-        if ($data === []) {
-            return '[]';
-        }
-
-        $lines = ['['];
-        foreach ($data as $status => $row) {
-            $lines[] = sprintf('    %d => [', $status);
-            $lines[] = sprintf('        %s => %s,', var_export('title', true), var_export($row['title'], true));
-            $lines[] = sprintf('        %s => %s,', var_export('body', true), var_export($row['body'], true));
-            $lines[] = '    ],';
-        }
-        $lines[] = ']';
-        return implode("\n", $lines);
+        ConfigWriter::toFile($this->filePath, $config, self::WRITE_LABEL);
     }
 }

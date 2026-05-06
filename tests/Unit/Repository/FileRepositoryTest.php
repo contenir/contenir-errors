@@ -50,6 +50,14 @@ final class FileRepositoryTest extends TestCase
         return $this->tmpDir . '/' . $name;
     }
 
+    private function writeConfig(array $config): void
+    {
+        file_put_contents(
+            $this->path(),
+            "<?php\n\nreturn " . var_export($config, true) . ";\n",
+        );
+    }
+
     public function testAllReturnsEmptyWhenFileMissing(): void
     {
         self::assertSame([], (new FileRepository($this->path()))->all());
@@ -67,35 +75,55 @@ final class FileRepositoryTest extends TestCase
         self::assertSame([], (new FileRepository($this->path()))->all());
     }
 
+    public function testAllReturnsEmptyWhenNamespaceKeyMissing(): void
+    {
+        $this->writeConfig(['somethingelse' => ['stuff' => 'here']]);
+
+        self::assertSame([], (new FileRepository($this->path()))->all());
+    }
+
+    public function testAllReturnsEmptyWhenPagesKeyMissing(): void
+    {
+        $this->writeConfig(['errors' => ['file' => '/tmp/x']]);
+
+        self::assertSame([], (new FileRepository($this->path()))->all());
+    }
+
+    public function testAllReturnsEmptyWhenPagesKeyIsNotArray(): void
+    {
+        $this->writeConfig(['errors' => ['pages' => 'oops']]);
+
+        self::assertSame([], (new FileRepository($this->path()))->all());
+    }
+
     public function testAllSkipsRowsWithNonIntegerKeys(): void
     {
-        file_put_contents(
-            $this->path(),
-            "<?php\n\nreturn ['oops' => ['title' => 'x', 'body' => '']];\n",
-        );
+        $this->writeConfig([
+            'errors' => ['pages' => ['oops' => ['title' => 'x', 'body' => '']]],
+        ]);
 
         self::assertSame([], (new FileRepository($this->path()))->all());
     }
 
     public function testAllSkipsRowsThatAreNotArrays(): void
     {
-        file_put_contents(
-            $this->path(),
-            "<?php\n\nreturn [404 => 'plain string'];\n",
-        );
+        $this->writeConfig([
+            'errors' => ['pages' => [404 => 'plain string']],
+        ]);
 
         self::assertSame([], (new FileRepository($this->path()))->all());
     }
 
     public function testAllReadsConfiguredPagesIndexedByStatus(): void
     {
-        file_put_contents(
-            $this->path(),
-            "<?php\n\nreturn [\n"
-                . "    404 => ['title' => 'Not found', 'body' => '<p>Lost.</p>'],\n"
-                . "    500 => ['title' => 'Oops', 'body' => ''],\n"
-                . "];\n",
-        );
+        $this->writeConfig([
+            'errors' => [
+                'pages' => [
+                    404 => ['title' => 'Not found', 'body' => '<p>Lost.</p>'],
+                    500 => ['title' => 'Oops', 'body' => ''],
+                ],
+            ],
+        ]);
 
         $pages = (new FileRepository($this->path()))->all();
 
@@ -108,7 +136,7 @@ final class FileRepositoryTest extends TestCase
 
     public function testAllDefaultsMissingFieldsToEmptyString(): void
     {
-        file_put_contents($this->path(), "<?php\n\nreturn [404 => []];\n");
+        $this->writeConfig(['errors' => ['pages' => [404 => []]]]);
 
         $page = (new FileRepository($this->path()))->get(404);
 
@@ -164,6 +192,49 @@ final class FileRepositoryTest extends TestCase
         self::assertNotNull($loaded);
         self::assertSame("Tom's page", $loaded->title);
         self::assertSame($body, $loaded->body);
+    }
+
+    public function testSavePreservesUnmanagedTopLevelKeys(): void
+    {
+        // An operator (or another package) wrote sibling top-level keys to
+        // the same file. Saving an error page must leave them untouched.
+        $this->writeConfig([
+            'pagecache'   => ['options' => ['cache' => false]],
+            'maintenance' => ['state' => ['active' => true]],
+        ]);
+
+        $repo = new FileRepository($this->path());
+        $repo->save(new ErrorPage(404, 'Lost', ''));
+
+        $reloaded = include $this->path();
+
+        self::assertSame(['options' => ['cache' => false]], $reloaded['pagecache']);
+        self::assertSame(['state' => ['active' => true]], $reloaded['maintenance']);
+        self::assertSame('Lost', $reloaded['errors']['pages'][404]['title']);
+    }
+
+    public function testSavePreservesSiblingKeysWithinErrorsNamespace(): void
+    {
+        // The .global.php that wires the package may declare other keys
+        // under 'errors' (e.g. file, view_template, logger). Save must
+        // touch only the 'pages' subkey.
+        $this->writeConfig([
+            'errors' => [
+                'file'          => '/some/path.php',
+                'view_template' => 'app/error/fault',
+                'logger'        => 'log.psr3',
+            ],
+        ]);
+
+        $repo = new FileRepository($this->path());
+        $repo->save(new ErrorPage(404, 'Lost', ''));
+
+        $reloaded = include $this->path();
+
+        self::assertSame('/some/path.php', $reloaded['errors']['file']);
+        self::assertSame('app/error/fault', $reloaded['errors']['view_template']);
+        self::assertSame('log.psr3', $reloaded['errors']['logger']);
+        self::assertSame('Lost', $reloaded['errors']['pages'][404]['title']);
     }
 
     public function testSaveCreatesParentDirectoryIfMissing(): void
@@ -235,6 +306,21 @@ final class FileRepositoryTest extends TestCase
         self::assertFileDoesNotExist($this->path());
     }
 
+    public function testDeletePreservesUnmanagedTopLevelKeys(): void
+    {
+        $this->writeConfig(['pagecache' => ['options' => ['cache' => true]]]);
+
+        $repo = new FileRepository($this->path());
+        $repo->save(new ErrorPage(404, 'a', ''));
+        $repo->save(new ErrorPage(500, 'b', ''));
+        $repo->delete(404);
+
+        $reloaded = include $this->path();
+        self::assertSame(['options' => ['cache' => true]], $reloaded['pagecache']);
+        self::assertArrayNotHasKey(404, $reloaded['errors']['pages']);
+        self::assertArrayHasKey(500, $reloaded['errors']['pages']);
+    }
+
     public function testEmptyAfterDeletingAllStillProducesValidFile(): void
     {
         $repo = new FileRepository($this->path());
@@ -255,6 +341,22 @@ final class FileRepositoryTest extends TestCase
         self::assertSame([], (new FileRepository($this->path()))->all());
     }
 
+    public function testSaveProducesNamespacedFileFormat(): void
+    {
+        $repo = new FileRepository($this->path());
+        $repo->save(new ErrorPage(404, 'Lost', '<p>x</p>'));
+
+        $loaded = include $this->path();
+
+        self::assertSame([
+            'errors' => [
+                'pages' => [
+                    404 => ['title' => 'Lost', 'body' => '<p>x</p>'],
+                ],
+            ],
+        ], $loaded);
+    }
+
     public function testSaveThrowsWhenParentDirectoryCannotBeCreated(): void
     {
         if (\function_exists('posix_geteuid') && posix_geteuid() === 0) {
@@ -268,7 +370,7 @@ final class FileRepositoryTest extends TestCase
 
         try {
             $this->expectException(RuntimeException::class);
-            $this->expectExceptionMessageMatches('/Cannot create errors directory/');
+            $this->expectExceptionMessageMatches('/Cannot create error pages directory/');
             $repo->save(new ErrorPage(404, 'x', ''));
         } finally {
             chmod($readOnly, 0o755);
