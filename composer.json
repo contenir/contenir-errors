@@ -1,0 +1,27 @@
+{
+    "name": "contenir/errors",
+    "description": "Framework-agnostic admin-authored error-page content for Contenir CMS — admin writes per-status titles and bodies, Site renders.",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.1 || ^8.2 || ^8.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "squizlabs/php_codesniffer": "^3.10"
+    },
+    "autoload": {
+        "psr-4": { "Contenir\\Errors\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "Contenir\\Errors\\Tests\\": "tests/" }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "cs": "phpcs",
+        "cs-fix": "phpcbf"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
