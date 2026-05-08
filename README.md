@@ -84,7 +84,3 @@ $repo = new InMemoryRepository([
     new ErrorPage(404, 'Not found', '<p>Lost.</p>'),
 ]);
 ```
-
-## License
-
-MIT

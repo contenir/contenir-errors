@@ -7,7 +7,7 @@
     "repositories": [
         {
             "type": "path",
-            "url": "../contenir-config",
+            "url": "../config",
             "canonical": false,
             "options": {
                 "symlink": true
