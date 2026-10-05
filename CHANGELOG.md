@@ -12,6 +12,8 @@ and the php-db QA toolchain shared by all Contenir 2.x packages. See
 
 ### Changed
 
+- `LICENSE` names Contenir as the copyright holder, in line with the other
+  Contenir packages, and uses the standard MIT wording.
 - Requires PHP 8.3, 8.4 or 8.5. PHP 8.1 and 8.2 are no longer supported.
 - `contenir/config` (`^0.2 || ^2.0`) is now a required dependency instead of a
   suggestion. `Repository\FileRepository` cannot work without it.
