@@ -6,71 +6,85 @@ namespace Contenir\Errors\Tests\Unit\Repository;
 
 use Contenir\Errors\ErrorPage;
 use Contenir\Errors\Repository\InMemoryRepository;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(InMemoryRepository::class)]
 #[Group('unit')]
 #[Group('errors')]
 final class InMemoryRepositoryTest extends TestCase
 {
-    public function testGetReturnsNullWhenStatusNotConfigured(): void
+    #[Test]
+    public function allIndexesInitialPagesByStatusCode(): void
     {
-        self::assertNull((new InMemoryRepository())->get(404));
+        $notFound = new ErrorPage(404, 'A', '');
+        $broken   = new ErrorPage(500, 'B', '');
+
+        static::assertSame([404 => $notFound, 500 => $broken], (new InMemoryRepository([$notFound, $broken]))->all());
     }
 
-    public function testGetReturnsConfiguredPage(): void
+    #[Test]
+    public function allIsEmptyByDefault(): void
     {
-        $page = new ErrorPage(404, 'Not found', '<p>Body</p>');
+        static::assertSame([], (new InMemoryRepository())->all());
+    }
+
+    #[Test]
+    public function deleteIgnoresAnUnknownStatus(): void
+    {
+        $page = new ErrorPage(404, 'x', '');
         $repo = new InMemoryRepository([$page]);
 
-        self::assertSame($page, $repo->get(404));
+        $repo->delete(500);
+
+        static::assertSame([404 => $page], $repo->all());
     }
 
-    public function testAllReturnsEmptyArrayByDefault(): void
+    #[Test]
+    public function deleteRemovesTheConfiguredPage(): void
     {
-        self::assertSame([], (new InMemoryRepository())->all());
+        $repo = new InMemoryRepository([new ErrorPage(404, 'x', '')]);
+
+        $repo->delete(404);
+
+        static::assertNull($repo->get(404));
     }
 
-    public function testAllIndexesByStatusCode(): void
+    #[Test]
+    public function getReturnsNullWhenStatusIsNotConfigured(): void
     {
-        $a    = new ErrorPage(404, 'A', '');
-        $b    = new ErrorPage(500, 'B', '');
-        $repo = new InMemoryRepository([$a, $b]);
-
-        self::assertSame([404 => $a, 500 => $b], $repo->all());
+        static::assertNull((new InMemoryRepository())->get(404));
     }
 
-    public function testSaveReplacesExistingPageForSameStatus(): void
+    #[Test]
+    public function getReturnsTheConfiguredPage(): void
     {
-        $repo  = new InMemoryRepository([new ErrorPage(404, 'Old', '')]);
-        $fresh = new ErrorPage(404, 'New', '');
-        $repo->save($fresh);
+        $page = new ErrorPage(404, 'Not found', '<p>Body</p>');
 
-        self::assertSame($fresh, $repo->get(404));
+        static::assertSame($page, (new InMemoryRepository([$page]))->get(404));
     }
 
-    public function testSaveAddsNewStatus(): void
+    #[Test]
+    public function saveAddsANewStatus(): void
     {
         $repo = new InMemoryRepository();
         $page = new ErrorPage(403, 'Forbidden', '');
+
         $repo->save($page);
 
-        self::assertSame($page, $repo->get(403));
+        static::assertSame($page, $repo->get(403));
     }
 
-    public function testDeleteRemovesConfiguredPage(): void
+    #[Test]
+    public function saveReplacesThePageForTheSameStatus(): void
     {
-        $repo = new InMemoryRepository([new ErrorPage(404, 'x', '')]);
-        $repo->delete(404);
+        $repo  = new InMemoryRepository([new ErrorPage(404, 'Old', '')]);
+        $fresh = new ErrorPage(404, 'New', '');
 
-        self::assertNull($repo->get(404));
-    }
+        $repo->save($fresh);
 
-    public function testDeleteIsNoopForUnknownStatus(): void
-    {
-        $repo = new InMemoryRepository([new ErrorPage(404, 'x', '')]);
-        $repo->delete(500);
-
-        self::assertNotNull($repo->get(404));
+        static::assertSame([404 => $fresh], $repo->all());
     }
 }

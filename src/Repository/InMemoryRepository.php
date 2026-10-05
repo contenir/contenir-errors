@@ -6,11 +6,14 @@ namespace Contenir\Errors\Repository;
 
 use Contenir\Errors\ErrorPage;
 use Contenir\Errors\ErrorPageRepositoryInterface;
+use Override;
 
 /**
  * Test-friendly repository that holds pages in memory. Shipped in src/ so
  * consumers' tests can require contenir/errors and use this directly without
  * depending on autoload-dev.
+ *
+ * @api
  */
 final class InMemoryRepository implements ErrorPageRepositoryInterface
 {
@@ -20,7 +23,7 @@ final class InMemoryRepository implements ErrorPageRepositoryInterface
     private array $pages = [];
 
     /**
-     * @param array<int, ErrorPage> $initial Indexed by status code.
+     * @param array<array-key, ErrorPage> $initial Re-indexed by each page's status code.
      */
     public function __construct(array $initial = [])
     {
@@ -29,23 +32,30 @@ final class InMemoryRepository implements ErrorPageRepositoryInterface
         }
     }
 
-    public function get(int $status): ?ErrorPage
-    {
-        return $this->pages[$status] ?? null;
-    }
-
+    /**
+     * @return array<int, ErrorPage>
+     */
+    #[Override]
     public function all(): array
     {
         return $this->pages;
     }
 
-    public function save(ErrorPage $page): void
-    {
-        $this->pages[$page->status] = $page;
-    }
-
+    #[Override]
     public function delete(int $status): void
     {
         unset($this->pages[$status]);
+    }
+
+    #[Override]
+    public function get(int $status): ?ErrorPage
+    {
+        return $this->pages[$status] ?? null;
+    }
+
+    #[Override]
+    public function save(ErrorPage $page): void
+    {
+        $this->pages[$page->status] = $page;
     }
 }
