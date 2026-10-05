@@ -5,44 +5,54 @@ declare(strict_types=1);
 namespace Contenir\Errors\Tests\Unit;
 
 use Contenir\Errors\ErrorPage;
+use Error;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(ErrorPage::class)]
 #[Group('unit')]
 #[Group('errors')]
 final class ErrorPageTest extends TestCase
 {
-    public function testConstructorAssignsAllProperties(): void
+    /**
+     * @return array<string, array{string, string, bool}>
+     */
+    public static function emptinessProvider(): array
+    {
+        return [
+            'no title, no body' => ['', '', true],
+            'title only'        => ['Not found', '', false],
+            'body only'         => ['', '<p>Body only.</p>', false],
+            'title and body'    => ['Not found', '<p>Lost.</p>', false],
+        ];
+    }
+
+    #[Test]
+    public function exposesStatusTitleAndBody(): void
     {
         $page = new ErrorPage(404, 'Not found', '<p>Try the homepage.</p>');
 
-        self::assertSame(404, $page->status);
-        self::assertSame('Not found', $page->title);
-        self::assertSame('<p>Try the homepage.</p>', $page->body);
+        static::assertSame([404, 'Not found', '<p>Try the homepage.</p>'], [$page->status, $page->title, $page->body]);
     }
 
-    public function testIsEmptyWhenTitleAndBodyAreBlank(): void
+    #[Test]
+    #[DataProvider('emptinessProvider')]
+    public function isEmptyOnlyWhenTitleAndBodyAreBothBlank(string $title, string $body, bool $expected): void
     {
-        self::assertTrue((new ErrorPage(404, '', ''))->isEmpty());
+        static::assertSame($expected, (new ErrorPage(404, $title, $body))->isEmpty());
     }
 
-    public function testIsNotEmptyWhenTitleSet(): void
+    #[Test]
+    public function rejectsModificationAfterConstruction(): void
     {
-        self::assertFalse((new ErrorPage(404, 'Not found', ''))->isEmpty());
-    }
+        $page = new ErrorPage(500, 'Oops', '<p>Body</p>');
 
-    public function testIsNotEmptyWhenBodySet(): void
-    {
-        self::assertFalse((new ErrorPage(404, '', '<p>Body only.</p>'))->isEmpty());
-    }
+        $this->expectException(Error::class);
+        $this->expectExceptionMessage('Cannot modify readonly property');
 
-    public function testStateIsImmutable(): void
-    {
-        $page       = new ErrorPage(500, 'Oops', '<p>Body</p>');
-        $reflection = new \ReflectionClass($page);
-
-        foreach ($reflection->getProperties() as $property) {
-            self::assertTrue($property->isReadOnly(), sprintf('Property %s should be readonly', $property->getName()));
-        }
+        $page->title = 'Changed';
     }
 }

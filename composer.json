@@ -1,41 +1,57 @@
 {
-    "name": "contenir/errors",
-    "description": "Framework-agnostic admin-authored error-page content for Contenir CMS — admin writes per-status titles and bodies, Site renders.",
-    "type": "library",
-    "license": "MIT",
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../config",
-            "canonical": false,
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
-    "require": {
-        "php": "^8.1 || ^8.2 || ^8.3"
-    },
-    "require-dev": {
-        "contenir/config": "^0.1.0",
-        "phpunit/phpunit": "^11.0",
-        "squizlabs/php_codesniffer": "^3.10"
-    },
-    "suggest": {
-        "contenir/config": "Required if you intend to use Repository\\FileRepository (admin-side writer). Sites that read state from the merged Laminas/Mezzio config — and use Repository\\InMemoryRepository — don't need it."
-    },
-    "autoload": {
-        "psr-4": { "Contenir\\Errors\\": "src/" }
-    },
-    "autoload-dev": {
-        "psr-4": { "Contenir\\Errors\\Tests\\": "tests/" }
-    },
-    "scripts": {
-        "test": "phpunit",
-        "cs": "phpcs",
-        "cs-fix": "phpcbf"
-    },
-    "config": {
-        "sort-packages": true
+  "name": "contenir/errors",
+  "description": "Framework-agnostic admin-authored error-page content for Contenir CMS — admin writes per-status titles and bodies, Site renders.",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+    "contenir/config": "^0.2 || ^2.0"
+  },
+  "require-dev": {
+    "php-db/phpdb-qa-tools": "0.1.x-dev",
+    "phpunit/phpunit": "^11.5.42"
+  },
+  "autoload": {
+    "psr-4": {
+      "Contenir\\Errors\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Contenir\\Errors\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "check": [
+      "@cs-check",
+      "@static-analysis",
+      "@test",
+      "@test-integration"
+    ],
+    "cs-check": [
+      "mago format --check",
+      "mago lint"
+    ],
+    "cs-fix": [
+      "mago format",
+      "mago lint --fix"
+    ],
+    "static-analysis": "mago analyze",
+    "test": "phpunit --colors=always --testsuite unit",
+    "test-integration": "phpunit --colors=always --testsuite integration",
+    "test-coverage": "phpunit --colors=always --coverage-clover clover.xml"
+  },
+  "config": {
+    "platform": {
+      "php": "8.3.99"
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-main": "2.0.x-dev"
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

@@ -11,15 +11,16 @@ namespace Contenir\Errors;
  * only — no scripts, styles, or block-level layout). Sanitization is the
  * writer's responsibility (typically the admin save flow); readers render
  * the body raw and trust the contract.
+ *
+ * @api
  */
-final class ErrorPage
+final readonly class ErrorPage
 {
     public function __construct(
-        public readonly int $status,
-        public readonly string $title,
-        public readonly string $body,
-    ) {
-    }
+        public int $status,
+        public string $title,
+        public string $body,
+    ) {}
 
     /**
      * Treats a page with no title and no body as effectively absent. Listeners
@@ -27,6 +28,6 @@ final class ErrorPage
      */
     public function isEmpty(): bool
     {
-        return $this->title === '' && $this->body === '';
+        return '' === $this->title && '' === $this->body;
     }
 }
