@@ -13,7 +13,8 @@ and the php-db QA toolchain shared by all Contenir 2.x packages. See
 ### Changed
 
 - Requires PHP 8.3, 8.4 or 8.5. PHP 8.1 and 8.2 are no longer supported.
-- The development dependency on `contenir/config` is `^0.2 || ^2.0`.
+- `contenir/config` (`^0.2 || ^2.0`) is now a required dependency instead of a
+  suggestion. `Repository\FileRepository` cannot work without it.
 - `ErrorPage` and `Repository\FileRepository` are declared `readonly` classes.
   Both were already `final` with only readonly properties, so nothing that
   compiled before stops compiling.

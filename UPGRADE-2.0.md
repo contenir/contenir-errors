@@ -5,7 +5,12 @@
 | | 0.x | 2.0 |
 | --- | --- | --- |
 | PHP | ^8.1 | 8.3, 8.4 or 8.5 |
-| `contenir/config` (suggested, for `FileRepository`) | ^0.1 | ^0.2 or ^2.0 |
+| `contenir/config` | suggested, ^0.1 | **required**, ^0.2 or ^2.0 |
+
+`contenir/config` is now a hard dependency. `Repository\FileRepository` always
+needed it at runtime, but 0.x only suggested it, so installing without it
+failed on first write. Composer now installs it for you; if you already
+require it yourself, keep the constraint compatible with `^0.2 || ^2.0`.
 
 To upgrade, update the constraint:
 

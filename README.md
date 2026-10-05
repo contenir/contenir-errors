@@ -18,8 +18,8 @@ Framework-specific listeners and middleware come from sibling packages
 ## Requirements
 
 - PHP 8.3, 8.4 or 8.5
-- [`contenir/config`](https://github.com/contenir/config) `^0.2 || ^2.0`, only if
-  you use `Repository\FileRepository`
+- [`contenir/config`](https://github.com/contenir/config) `^0.2 || ^2.0`, installed
+  automatically; `Repository\FileRepository` reads and writes through it
 
 The 0.x releases, which support PHP 8.1, remain available from the `0.x`
 branch and `v0.*` tags; see [UPGRADE-2.0.md](UPGRADE-2.0.md).
@@ -28,13 +28,7 @@ branch and `v0.*` tags; see [UPGRADE-2.0.md](UPGRADE-2.0.md).
 
 ```bash
 composer require contenir/errors
-# and, for the admin-side file writer:
-composer require contenir/config
 ```
-
-The package has no runtime dependencies of its own. `contenir/config` is a
-suggestion because a Site that reads pages from its merged Laminas/Mezzio
-config and uses `InMemoryRepository` never touches the file.
 
 ## Usage
 

@@ -4,15 +4,12 @@
   "type": "library",
   "license": "MIT",
   "require": {
-    "php": "~8.3.0 || ~8.4.0 || ~8.5.0"
+    "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
+    "contenir/config": "^0.2 || ^2.0"
   },
   "require-dev": {
-    "contenir/config": "^0.2 || ^2.0",
     "php-db/phpdb-qa-tools": "0.1.x-dev",
     "phpunit/phpunit": "^11.5.42"
-  },
-  "suggest": {
-    "contenir/config": "Required if you intend to use Repository\\FileRepository (admin-side writer). Sites that read state from the merged Laminas/Mezzio config — and use Repository\\InMemoryRepository — don't need it."
   },
   "autoload": {
     "psr-4": {
