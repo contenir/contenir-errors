@@ -15,7 +15,7 @@ require it yourself, keep the constraint compatible with `^0.2 || ^2.0`.
 To upgrade, update the constraint:
 
 ```bash
-composer require contenir/errors:^2.0
+composer require contenir/contenir-errors:^2.0
 ```
 
 No code changes are needed. `ErrorPage`, `ErrorPageRepositoryInterface`,
@@ -43,3 +43,19 @@ Scalar values (`404`, `1.5`, `true`) are still cast to string as before.
 
 Projects that must stay on PHP 8.1 or 8.2 can keep using `^0.1`, which is
 maintained on the `0.x` branch.
+
+## Package renamed in 2.1
+
+From 2.1, the package is published as `contenir/contenir-errors`. It declares
+`replace` for `contenir/errors`, so the two can never be installed together.
+Switch the requirement:
+
+```bash
+composer remove contenir/errors && composer require contenir/contenir-errors:^2.1
+```
+
+2.1 also requires `contenir/contenir-config` `^2.1` (the renamed
+`contenir/config`) instead of `contenir/config`. If you require
+`contenir/config` directly, switch that requirement as well.
+
+No code changes are needed: namespaces and classes are unchanged.

@@ -1,7 +1,9 @@
-# contenir/errors
+# contenir/contenir-errors
 
-[![Continuous Integration](https://github.com/contenir/errors/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/contenir/errors/actions/workflows/continuous-integration.yml)
-[![codecov](https://codecov.io/gh/contenir/errors/graph/badge.svg)](https://codecov.io/gh/contenir/errors)
+Formerly `contenir/errors`; the old package is abandoned in favour of this one.
+
+[![Continuous Integration](https://github.com/contenir/contenir-errors/actions/workflows/continuous-integration.yml/badge.svg)](https://github.com/contenir/contenir-errors/actions/workflows/continuous-integration.yml)
+[![codecov](https://codecov.io/gh/contenir/contenir-errors/graph/badge.svg)](https://codecov.io/gh/contenir/contenir-errors)
 
 Framework-agnostic admin-authored error-page content for [Contenir CMS](https://github.com/contenir).
 
@@ -13,12 +15,12 @@ on-brand content.
 This package provides the *domain*: an immutable per-status value plus
 a repository interface, with file-based and in-memory implementations.
 Framework-specific listeners and middleware come from sibling packages
-(e.g. [`contenir/errors-laminas-mvc`](https://github.com/contenir/errors-laminas-mvc)).
+(e.g. [`contenir/contenir-errors-laminas-mvc`](https://github.com/contenir/contenir-errors-laminas-mvc)).
 
 ## Requirements
 
 - PHP 8.3, 8.4 or 8.5
-- [`contenir/config`](https://github.com/contenir/config) `^0.2 || ^2.0`, installed
+- [`contenir/contenir-config`](https://github.com/contenir/contenir-config) `^2.1`, installed
   automatically; `Repository\FileRepository` reads and writes through it
 
 The 0.x releases, which support PHP 8.1, remain available from the `0.x`
@@ -27,7 +29,7 @@ branch and `v0.*` tags; see [UPGRADE-2.0.md](UPGRADE-2.0.md).
 ## Installation
 
 ```bash
-composer require contenir/errors
+composer require contenir/contenir-errors
 ```
 
 ## Usage
@@ -114,7 +116,7 @@ return [
   preserved on save, so operators can hand-edit the same file.
 - Pages are written sorted by status code.
 - Writes are atomic (temporary file and rename) and invalidate the file's
-  opcache entry, via `contenir/config`. A failed write throws
+  opcache entry, via `contenir/contenir-config`. A failed write throws
   `Contenir\Config\Exception\WriteException`, a `RuntimeException`.
 - A missing, unreadable or unparsable file reads as no pages. Rows whose
   key is not an integer, or whose value is not an array, are skipped. A

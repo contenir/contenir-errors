@@ -1,16 +1,19 @@
 {
-  "name": "contenir/errors",
+  "name": "contenir/contenir-errors",
   "description": "Framework-agnostic admin-authored error-page content for Contenir CMS — admin writes per-status titles and bodies, Site renders.",
   "type": "library",
   "license": "MIT",
   "require": {
     "php": "~8.3.0 || ~8.4.0 || ~8.5.0",
-    "contenir/config": "^0.2 || ^2.0"
+    "contenir/contenir-config": "^2.1"
   },
   "require-dev": {
     "infection/infection": "^0.34.1",
     "php-db/phpdb-qa-tools": "0.1.x-dev",
     "phpunit/phpunit": "^11.5.42"
+  },
+  "replace": {
+    "contenir/errors": "self.version"
   },
   "autoload": {
     "psr-4": {
@@ -55,7 +58,7 @@
   },
   "extra": {
     "branch-alias": {
-      "dev-main": "2.0.x-dev"
+      "dev-main": "2.1.x-dev"
     }
   },
   "minimum-stability": "dev",
