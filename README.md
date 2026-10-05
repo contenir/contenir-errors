@@ -150,6 +150,7 @@ composer static-analysis   # mago analyze
 composer test              # unit suite: value object and in-memory repository, no I/O
 composer test-integration  # integration suite: FileRepository against a real temp directory
 composer test-coverage     # both suites, clover.xml for Codecov
+composer mutation-test     # Infection mutation testing over both suites
 ```
 
 ## License

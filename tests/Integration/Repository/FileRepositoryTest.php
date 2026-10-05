@@ -110,6 +110,25 @@ final class FileRepositoryTest extends TestCase
     }
 
     #[Test]
+    public function allSkipsUnusableRowsAndKeepsTheValidRowsAfterThem(): void
+    {
+        $this->writeConfig([
+            'errors' => [
+                'pages' => [
+                    403 => 'plain string',
+                    'x' => ['title' => 'Bad key'],
+                    404 => ['title' => 'Not found', 'body' => '<p>Lost.</p>'],
+                ],
+            ],
+        ]);
+
+        static::assertEquals(
+            [404 => new ErrorPage(404, 'Not found', '<p>Lost.</p>')],
+            (new FileRepository($this->path()))->all(),
+        );
+    }
+
+    #[Test]
     public function deleteDoesNotCreateAMissingFile(): void
     {
         (new FileRepository($this->path()))->delete(404);
