@@ -4,7 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [2.1.0] - Unreleased
+
+### Changed
+
+- Renamed from `contenir/errors` to `contenir/contenir-errors`. The package
+  declares `replace` for the old name; require `contenir/contenir-errors`
+  instead. See [UPGRADE-2.0.md](UPGRADE-2.0.md).
+- Requires `contenir/contenir-config` `^2.1`, the renamed `contenir/config`,
+  in place of `contenir/config` `^0.2 || ^2.0`.
 
 ### Added
 

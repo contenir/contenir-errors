@@ -10,8 +10,8 @@ use Override;
 
 /**
  * Test-friendly repository that holds pages in memory. Shipped in src/ so
- * consumers' tests can require contenir/errors and use this directly without
- * depending on autoload-dev.
+ * consumers' tests can require contenir/contenir-errors and use this directly
+ * without depending on autoload-dev.
  *
  * @api
  */
