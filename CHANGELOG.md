@@ -4,7 +4,7 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [2.1.0] - Unreleased
+## [2.1.0] - 2026-10-05
 
 ### Changed
 
@@ -18,7 +18,7 @@ adheres to [Semantic Versioning](https://semver.org/).
 
 - Infection mutation testing in CI, MSI 100%.
 
-## [2.0.0] - Unreleased
+## [2.0.0] - 2026-10-05
 
 The public API is unchanged. The major version marks the move to PHP 8.3+
 and the php-db QA toolchain shared by all Contenir 2.x packages. See
